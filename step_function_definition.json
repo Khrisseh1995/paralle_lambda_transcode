@@ -1,0 +1,65 @@
+{
+    "StartAt": "Generate Segment Input",
+    "States": {
+      "Generate Segment Input": {
+        "Type": "Task",
+        "Resource": "YOUR_LAMBDA_ARN",
+        "Next": "ExampleMapState"
+      },
+      "ExampleMapState": {
+        "Type": "Map",
+        "ItemsPath": "$.segmentInput",
+        "Next": "Concat JSON",
+        "Iterator": {
+          "StartAt": "Split Chunks",
+          "States": {
+            "Split Chunks": {
+              "Type": "Task",
+              "Resource": "YOUR_LAMBDA_ARN",
+              "End": true
+            }
+          }
+        }
+      },
+      "Concat JSON": {
+        "Type": "Task",
+        "Resource": "YOUR_LAMBDA_ARN",
+        "Next": "Combine Streams"
+      },
+      "Combine Streams": {
+        "Type": "Task",
+        "Resource": "YOUR_LAMBDA_ARN",
+        "Next": "Generate Byte Ranges"
+      },
+      "Generate Byte Ranges": {
+        "Type": "Task",
+        "Parameters": {
+          "fileName": "hls_manifest/combined.ts",
+          "bucket": "hboremixbucket"
+        },
+        "Resource": "YOUR_LAMBDA_ARN",
+        "Next": "GenerateTimeCode"
+      },
+      "GenerateTimeCode": {
+        "Type": "Map",
+        "ItemsPath": "$.byteRanges",
+        "Next": "Generate Manifest",
+        "Iterator": {
+          "StartAt": "Generate Time Codes",
+          "States": {
+            "Generate Time Codes": {
+              "Type": "Task",
+              "Resource": "YOUR_LAMBDA_ARN",
+              "End": true
+            }
+          }
+        }
+      },
+      "Generate Manifest": {
+        "Type": "Task",
+        "InputPath": "$",
+        "Resource": "YOUR_LAMBDA_ARN",
+        "End": true
+      }
+    }
+  }
